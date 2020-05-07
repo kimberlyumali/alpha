@@ -37,10 +37,11 @@ class AppController extends Controller
      *
      * @return void
      */
+    public $components = ['RequestHandler'];
+        
     public function initialize()
     {
         parent::initialize();
-
         $this->loadComponent('RequestHandler', [
             'enableBeforeRedirect' => false,
         ]);
@@ -53,11 +54,4 @@ class AppController extends Controller
         //$this->loadComponent('Security');
     }
 
-    /*
-     *
-     */
-    public function artist ($artist = "")
-    {
-        echo 123; 
-    }
 }
