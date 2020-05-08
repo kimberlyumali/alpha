@@ -11,6 +11,7 @@ class ArtistController extends AppController
         parent::initialize();
         $this->loadComponent('RequestHandler');
 
+
     }
 
     /*
@@ -18,35 +19,62 @@ class ArtistController extends AppController
     * 
     * STILL IN PROGRESS
     * 
-    * @params: $artistId
+    * @params: $artistId = 49tQo2QULno7gxHutgccqF (LANY)
     */
-    public function Albums($artistId = "")
+    public function Albums($artistId)
     {
 
-      $accessToken = 'BQAoQo8XF_fPyt_Ha9LGXFfwcLSWNtgd31F2mj8UEqE-h5PUqvQyWoVIpKv6GP7_jWF7FdVSboMTmmJYh04IAfDWMhQzH2zqc_WQce1K8nVFjGGPd8pYgrlHqEkYZ2vu2zwBeHCWx4rzUqhw48nJBi1OLr_8q_dyQlnbv7WXrH9VtEQ';
+      $http = new Client();
 
-      $http = new Client(['headers' => ['Authorization' => 'Bearer ' . $accessToken]]);
-        
-      // Artist's id
-      $artist_id = '49tQo2QULno7gxHutgccqF';
+      // $getToken = $http->post('https://accounts.spotify.com/api/token', 
+      //     ['grant_type' => 'client_credentials'], [  
+      //     'headers' => [
+      //           'Authorization' => 'Basic MjQyYjBkMjdlMGE0NGU3NTllZGQ5NDViN2ZlMTA4NWQ6YWU5OTliNjY3ZTdhNGIxMmI3NDgxYjkzN2MwMGU2ZDY=',
+      //           'Content_Type' => 'application/x-www-form-urlencoded',
+      //     ]
+      // ]);
+
+      // debug($getToken);
+      // die;
+
+      $curl = curl_init();
+
+      curl_setopt_array($curl, [
+        CURLOPT_URL => "https://accounts.spotify.com/api/token",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_POSTFIELDS => "grant_type=client_credentials",
+        CURLOPT_HTTPHEADER => [
+          "Authorization: Basic MjQyYjBkMjdlMGE0NGU3NTllZGQ5NDViN2ZlMTA4NWQ6YWU5OTliNjY3ZTdhNGIxMmI3NDgxYjkzN2MwMGU2ZDY=",
+          "Content-Type: application/x-www-form-urlencoded",
+        ],
+      ]);
+
+      $responseToken = curl_exec($curl);
+      curl_close($curl);
+
+      $http = new Client(['headers' => ['Authorization' => 'Bearer ' . json_decode($responseToken)->access_token]]);
 
       // Spotify Endpoint
-      $playlist_url = 'https://api.spotify.com/v1/artists/'. $artist_id .'/albums';
+      $playlist_url = 'https://api.spotify.com/v1/artists/'. $artistId .'/albums';
 
       $data = [];
       $response = $http->get($playlist_url);
       $data = $response->getJson();
 
       foreach($data['items'] as $item) {
-        array_push($data, $item['name']);
+        echo $item['name'] . '<br>';
+        // array_push($data,  $item['name']);
       }
 
+      unset($data['items']);
 
-      $this->set([
-          'code' => 200,
-          'message' => 'Success',
-          'data' => $data,
-          '_serialize' => ['data'],
-      ]);
+      debug($item);
+      die;
     }
 }
