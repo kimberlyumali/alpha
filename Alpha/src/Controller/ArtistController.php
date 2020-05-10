@@ -2,42 +2,33 @@
 namespace App\Controller;
 
 use Cake\Http\Client;
+use Cake\Controller\Component\RequestHandlerComponent;
+use Cake\Event\Event;
 
 class ArtistController extends AppController
 {
     public function initialize()
     {
-      
         parent::initialize();
         $this->loadComponent('RequestHandler');
-
-
     }
+
 
     /*
     * Stage 1 Artist Query
     * 
     * STILL IN PROGRESS
     * 
-    * @params: $artistId = 49tQo2QULno7gxHutgccqF (LANY)
+    * @param: $artistId = 49tQo2QULno7gxHutgccqF (LANY)
     */
     public function Albums($artistId)
     {
 
       $http = new Client();
-
-      // $getToken = $http->post('https://accounts.spotify.com/api/token', 
-      //     ['grant_type' => 'client_credentials'], [  
-      //     'headers' => [
-      //           'Authorization' => 'Basic MjQyYjBkMjdlMGE0NGU3NTllZGQ5NDViN2ZlMTA4NWQ6YWU5OTliNjY3ZTdhNGIxMmI3NDgxYjkzN2MwMGU2ZDY=',
-      //           'Content_Type' => 'application/x-www-form-urlencoded',
-      //     ]
-      // ]);
-
-      // debug($getToken);
-      // die;
-
       $curl = curl_init();
+
+      $clientId = '242b0d27e0a44e759edd945b7fe1085d';
+      $clientSecret = 'ae999b667e7a4b12b7481b937c00e6d6';
 
       curl_setopt_array($curl, [
         CURLOPT_URL => "https://accounts.spotify.com/api/token",
@@ -49,10 +40,7 @@ class ArtistController extends AppController
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => "POST",
         CURLOPT_POSTFIELDS => "grant_type=client_credentials",
-        CURLOPT_HTTPHEADER => [
-          "Authorization: Basic MjQyYjBkMjdlMGE0NGU3NTllZGQ5NDViN2ZlMTA4NWQ6YWU5OTliNjY3ZTdhNGIxMmI3NDgxYjkzN2MwMGU2ZDY=",
-          "Content-Type: application/x-www-form-urlencoded",
-        ],
+        CURLOPT_HTTPHEADER => ["Authorization: Basic " . base64_encode($clientId.':'.$clientSecret)],
       ]);
 
       $responseToken = curl_exec($curl);
@@ -63,18 +51,23 @@ class ArtistController extends AppController
       // Spotify Endpoint
       $playlist_url = 'https://api.spotify.com/v1/artists/'. $artistId .'/albums';
 
-      $data = [];
       $response = $http->get($playlist_url);
       $data = $response->getJson();
 
+
+      $datum = [];
       foreach($data['items'] as $item) {
-        echo $item['name'] . '<br>';
-        // array_push($data,  $item['name']);
-      }
 
-      unset($data['items']);
+        array_push($datum, $item['name']);
 
-      debug($item);
-      die;
+      } 
+    
+      $this->set([
+        'code'=> 200,
+        'message' => 'Success',
+        'data' => $datum,
+        '_serialize' => ['code','message','data']
+      ]);
+
     }
 }
