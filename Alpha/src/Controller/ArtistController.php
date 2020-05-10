@@ -4,6 +4,8 @@ namespace App\Controller;
 use Cake\Http\Client;
 use Cake\Controller\Component\RequestHandlerComponent;
 use Cake\Event\Event;
+use Cake\Core\Configure; 
+use Cake\Http\ServerRequest;
 
 class ArtistController extends AppController
 {
@@ -21,17 +23,17 @@ class ArtistController extends AppController
     * 
     * @param: $artistId = 49tQo2QULno7gxHutgccqF (LANY)
     */
-    public function Albums($artistId)
+    public function Albums($artistName)
     {
 
       $http = new Client();
       $curl = curl_init();
 
-      $clientId = '242b0d27e0a44e759edd945b7fe1085d';
-      $clientSecret = 'ae999b667e7a4b12b7481b937c00e6d6';
+      $code = '';
+      $message = '';
 
       curl_setopt_array($curl, [
-        CURLOPT_URL => "https://accounts.spotify.com/api/token",
+        CURLOPT_URL => Configure::read('API_ACCESS_TOKEN'), // Spotify Access Token
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => "",
         CURLOPT_MAXREDIRS => 10,
@@ -40,7 +42,7 @@ class ArtistController extends AppController
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => "POST",
         CURLOPT_POSTFIELDS => "grant_type=client_credentials",
-        CURLOPT_HTTPHEADER => ["Authorization: Basic " . base64_encode($clientId.':'.$clientSecret)],
+        CURLOPT_HTTPHEADER => ["Authorization: Basic " . base64_encode(Configure::read('CLIENT_ID').':'.Configure::read('CLIENT_SECRET'))],
       ]);
 
       $responseToken = curl_exec($curl);
@@ -48,25 +50,44 @@ class ArtistController extends AppController
 
       $http = new Client(['headers' => ['Authorization' => 'Bearer ' . json_decode($responseToken)->access_token]]);
 
-      // Spotify Endpoint
-      $playlist_url = 'https://api.spotify.com/v1/artists/'. $artistId .'/albums';
+      /*
+      * Spotify Search Artist endpoint
+      * Return : Artist's Albums
+      */
+      $getSearchedArtistId = Configure::read('API_SEARCH_ARTIST') . $artistName . '&type=album';
+      $responseSearchedArtistId = $http->get($getSearchedArtistId);
+      $dataSearchedArtist = $responseSearchedArtistId->getJSON();
 
-      $response = $http->get($playlist_url);
-      $data = $response->getJson();
+      $album = [];
+      $sortedReleaseDate = [];
+
+      if(isset($dataSearchedArtist['albums']['items'])) {
+        foreach($dataSearchedArtist['albums']['items'] as $item) {
+          $code = 200;
+          $message = 'Ok';
+            array_push($album, $item['release_date'] .":". $item['name']);
+        } 
+      } else {
+          $code = 500;
+          $message = 'Invalid Artist or empty album';
+      }
+
+      rsort($album);
+      foreach($album as $dataToSort) {
+        $albumName = explode(":",$dataToSort);
+        array_push($sortedReleaseDate, $albumName[1]);
+      }
 
 
-      $datum = [];
-      foreach($data['items'] as $item) {
-
-        array_push($datum, $item['name']);
-
-      } 
-    
+      /*
+      * API Response
+      */
       $this->set([
-        'code'=> 200,
-        'message' => 'Success',
-        'data' => $datum,
-        '_serialize' => ['code','message','data']
+        'code'=> $code,
+        'message' => $message,
+        'artist_name' => $artistName,
+        'data' => $sortedReleaseDate,
+        '_serialize' => ['code','message','artist_name','data']
       ]);
 
     }
