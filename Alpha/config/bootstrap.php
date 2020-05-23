@@ -208,4 +208,5 @@ Type::build('timestamp')
 Configure::write('API_ACCESS_TOKEN', 'https://accounts.spotify.com/api/token');
 Configure::write('CLIENT_ID', '242b0d27e0a44e759edd945b7fe1085d');
 Configure::write('CLIENT_SECRET', 'ae999b667e7a4b12b7481b937c00e6d6');
-Configure::write('API_SEARCH_ARTIST','https://api.spotify.com/v1/search?q=');
+Configure::write('API_SEARCH','https://api.spotify.com/v1/search?q=');
+Configure::write('API_SEARCH_TRACKS','https://api.spotify.com/v1/albums/');
