@@ -6,7 +6,6 @@ use Cake\Controller\Component\RequestHandlerComponent;
 use Cake\Event\Event;
 use Cake\Core\Configure; 
 use Cake\Http\ServerRequest;
-use Cake\Routing\Router;
 
 class ArtistController extends AppController
 {
@@ -14,6 +13,7 @@ class ArtistController extends AppController
     {
         parent::initialize();
         $this->loadComponent('RequestHandler');
+
     }
 
     /*
@@ -48,7 +48,7 @@ class ArtistController extends AppController
 
       /*
       * Spotify Search Artist endpoint
-      * Return : Artist's Albums
+      * Return : Artist's Albums 
       */
       $getSearchedArtistId = Configure::read('API_SEARCH') . $artistName . '&type=album';
       $responseSearchedArtistId = $http->get($getSearchedArtistId);
@@ -73,7 +73,6 @@ class ArtistController extends AppController
         $albumName = explode(":",$dataToSort);
         array_push($sortedReleaseDate, $albumName[1]);
       }
-
 
       /*
       * API Response
@@ -121,28 +120,20 @@ class ArtistController extends AppController
       $getSearchedArtistIdAlbum = Configure::read('API_SEARCH').'album'.'%3A'. $albumname.'%20'. $artist.'%3A'.$artistname.'&type=album';
       $responseSearchedArtistIdAlbum = $http->get($getSearchedArtistIdAlbum);
       $dataSearchedArtistAlbum = $responseSearchedArtistIdAlbum->getJSON();
-      
-      $testAlbumId = '';
 
-      if(isset($dataSearchedArtistAlbum['albums']['items'][0])) {
-        $testAlbumId = $dataSearchedArtistAlbum['albums']['items'][0]['id'];
-      } else {
-        $code = 400;
-        $message = 'invalid id or Empty track(s)';
-      }
+      $AlbumId = $dataSearchedArtistAlbum['albums']['items'][0]['id'];
 
       /*
       * Spotify Search Artist endpoint
       * Return : Album tracks
+      * For this endpoint Tracks are already been sorted by the number of tracks ASC order
       */
-      $getSearchedArtistId = Configure::read('API_SEARCH_TRACKS') . $testAlbumId . '/tracks';
+      $getSearchedArtistId = Configure::read('API_SEARCH_TRACKS') . $AlbumId . '/tracks';
       $responseSearchedArtistId = $http->get($getSearchedArtistId);
       $dataSearchedArtist = $responseSearchedArtistId->getJSON();
 
-      // debug($dataSearchedArtist);die;
-
       $tracks = [];
-        if(isset($dataSearchedArtist['albums']['items'])) {
+        if(isset($dataSearchedArtist['items'])) {
           $code = 200;
           $message = 'OK';
           foreach($dataSearchedArtist['items'] as $track) {
