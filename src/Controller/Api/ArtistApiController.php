@@ -35,7 +35,7 @@ class ArtistApiController extends AppController
     * message     | string      | Code description (e.g 200 = OK, 300 = Something went wrong. Please contact administrator, 400 = invalid Parameter)
     *
     */
-    public function Artist($artistName = null ,$album = null, $albumname = null)
+    public function Artist($artistName = NULL ,$album = NULL, $albumame = NULL)
     {
 
       $http = new Client();
@@ -43,13 +43,15 @@ class ArtistApiController extends AppController
 
       $header = explode('/',$this->request->getRequestTarget());
 
+      curl_setopt($curl, CURLOPT_FOLLOWLOCATION, TRUE);
+      curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
       curl_setopt_array($curl, [
         CURLOPT_URL => Configure::read('API_ACCESS_TOKEN'), // Spotify Access Token
-        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_RETURNTRANSFER => TRUE,
         CURLOPT_ENCODING => "",
         CURLOPT_MAXREDIRS => 10,
         CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_FOLLOWLOCATION => TRUE,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => "POST",
         CURLOPT_POSTFIELDS => "grant_type=client_credentials",
@@ -82,11 +84,12 @@ class ArtistApiController extends AppController
           foreach($dataSearchedArtist['albums']['items'] as $item) {
             $code = 200;
             $message = "Ok";
-              array_push($albums, $item['release_date'] .":". $item['name']);
+            
+            array_push($albums, $item['release_date'] .":". $item['name']);
           } 
         } else {
             $code = 400;
-            $message = 'Invalid Parameter';
+            $message = 'Invalid Parameter or Empty Tracks';
         }
 
         rsort($albums);
@@ -102,7 +105,7 @@ class ArtistApiController extends AppController
           $responseSearchedArtistIdAlbum = $http->get($getSearchedArtistIdAlbum);
           $dataSearchedArtistAlbum = $responseSearchedArtistIdAlbum->getJSON();
 
-          if(isset($dataSearchedArtistAlbum['albums']['items'])) {
+          if(isset($dataSearchedArtistAlbum['albums']['items'][0])) {
             $code = 200;
             $message = 'OK';
             /*
@@ -122,7 +125,7 @@ class ArtistApiController extends AppController
             }
           } else {
             $code = 400;
-            $message = 'invalid Parameter';
+            $message = 'invalid Parameter or Empty Tracks';
           }
       } else {
           $code = 300;
