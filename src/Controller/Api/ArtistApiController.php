@@ -15,23 +15,25 @@ class ArtistApiController extends AppController
     {
         parent::initialize();
         $this->loadComponent('RequestHandler');
+        $this->RequestHandler->renderAs($this, 'json');
     }
 
     /*
-    * Stage 1 Artist Query
     *
-    * @param : $artistName (LANY, Prince, Journey)
+    * Endpoint   Artist/{@artistName}/album/{@albumname}
     * 
-    * return  | return_datatype
-    * --------------------------
-    * code    | int
-    * message | Text
-    * data    | array
-    *  
-    * Output @array
-    * --------------------------
-    * arrays of Artist album(s) sorted by release_date DESC order
-    * 
+    * Parameters 
+    * Name        | Type        | Description
+    * ------------------------------------------------------------------------------
+    * artistName  | string      | name of an Artist (e.g ABBA, LANY, JOURNEY)
+    * albumname   | string      | name of an Artist Album (e.g  Arrival, Frontiers )
+    *
+    * Status Code 
+    * Name        | Type        | Description
+    * ------------------------------------------------------------------------------
+    * code        | int         | HTTP Status Code (e.g 200, 300, 400)
+    * message     | string      | Code description (e.g 200 = OK, 300 = Something went wrong. Please contact administrator, 400 = invalid Parameter)
+    *
     */
     public function Artist($artistName = null ,$album = null, $albumname = null)
     {
@@ -39,8 +41,7 @@ class ArtistApiController extends AppController
       $http = new Client();
       $curl = curl_init();
 
-      $code = '';
-      $message = '';
+      $header = explode('/',$this->request->getRequestTarget());
 
       curl_setopt_array($curl, [
         CURLOPT_URL => Configure::read('API_ACCESS_TOKEN'), // Spotify Access Token
@@ -60,10 +61,16 @@ class ArtistApiController extends AppController
 
       $http = new Client(['headers' => ['Authorization' => 'Bearer ' . json_decode($responseToken)->access_token]]);
 
+      /*
+      * initialization vars
+      */
+      $code = '';
+      $message = '';
       $albums = [];
       $tracks = [];
       $sortedReleaseDate = [];
-      if(count(explode('/',$this->request->getRequestTarget())) == 3 ) {
+
+      if(count($header) == 3 ) {
          /*
           * Spotify Search Artist endpoint
           * Return : Artist's Albums 
@@ -79,7 +86,7 @@ class ArtistApiController extends AppController
           } 
         } else {
             $code = 400;
-            $message = 'Invalid Artist or empty album';
+            $message = 'Invalid Parameter';
         }
 
         rsort($albums);
@@ -87,8 +94,10 @@ class ArtistApiController extends AppController
           $albumName = explode(":",$dataToSort);
           array_push($sortedReleaseDate, $albumName[1]);
         }
-      } elseif(count(explode('/',$this->request->getRequestTarget())) == 5 && in_array('album',explode('/',$this->request->getRequestTarget()))) {
-          // search the artist and album name  
+      } elseif(count($header) == 5 && in_array('album',$header)) {
+          /*
+          * search the artist and album name
+          */   
           $getSearchedArtistIdAlbum = Configure::read('API_SEARCH').'album'.'%3A'.$albumname.'%20'.'artist'.'%3A'.$artistName.'&type=album';
           $responseSearchedArtistIdAlbum = $http->get($getSearchedArtistIdAlbum);
           $dataSearchedArtistAlbum = $responseSearchedArtistIdAlbum->getJSON();
@@ -113,10 +122,10 @@ class ArtistApiController extends AppController
             }
           } else {
             $code = 400;
-            $message = 'invalid enpoint or Empty track(s)';
+            $message = 'invalid Parameter';
           }
       } else {
-          $code = 400;
+          $code = 300;
           $message = 'Something went wrong. Please contact administrator';
       }
 
@@ -127,7 +136,7 @@ class ArtistApiController extends AppController
         'code'=> $code,
         'message' => $message,
         'data' => (!empty($tracks) ? $tracks : $sortedReleaseDate),
-        '_serialize' => ['code','message','artist_name','data'] 
+        '_serialize' => ['code','message','data'] 
       ]);  
 
     }

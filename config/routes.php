@@ -47,11 +47,10 @@ Router::defaultRouteClass(DashedRoute::class);
 
 Router::scope('/', function (RouteBuilder $routes) {
     // Register scoped middleware for in scopes.
-    $routes->setExtensions(['json']);
     $routes->resources('ArtistApi');
 
     $routes->connect('/Artist/*', ['controller' => 'ArtistApi', 'action' => 'Artist', 'prefix' => 'Api']);
-    
+
     $routes->registerMiddleware('csrf', new CsrfProtectionMiddleware([
         'httpOnly' => true
     ]));
