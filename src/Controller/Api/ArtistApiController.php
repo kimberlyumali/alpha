@@ -35,7 +35,7 @@ class ArtistApiController extends AppController
     * message     | string      | Code description (e.g 200 = OK, 300 = Something went wrong. Please contact administrator, 400 = invalid Parameter)
     *
     */
-    public function Artist($artistName = NULL ,$album = NULL, $albumame = NULL)
+    public function Artist($artistName = NULL ,$album = NULL, $artistAlbumName = NULL)
     {
 
       $http = new Client();
@@ -48,14 +48,14 @@ class ArtistApiController extends AppController
       curl_setopt_array($curl, [
         CURLOPT_URL => Configure::read('API_ACCESS_TOKEN'), // Spotify Access Token
         CURLOPT_RETURNTRANSFER => TRUE,
-        CURLOPT_ENCODING => "",
+        CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
         CURLOPT_TIMEOUT => 0,
         CURLOPT_FOLLOWLOCATION => TRUE,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => "POST",
-        CURLOPT_POSTFIELDS => "grant_type=client_credentials",
-        CURLOPT_HTTPHEADER => ["Authorization: Basic " . base64_encode(Configure::read('CLIENT_ID').':'.Configure::read('CLIENT_SECRET'))],
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => 'grant_type=client_credentials',
+        CURLOPT_HTTPHEADER => ['Authorization: Basic ' . base64_encode(Configure::read('CLIENT_ID').':'.Configure::read('CLIENT_SECRET'))],
       ]);
 
       $responseToken = curl_exec($curl);
@@ -101,7 +101,7 @@ class ArtistApiController extends AppController
           /*
           * search the artist and album name
           */   
-          $getSearchedArtistIdAlbum = Configure::read('API_SEARCH').'album'.'%3A'.$albumname.'%20'.'artist'.'%3A'.$artistName.'&type=album';
+          $getSearchedArtistIdAlbum = Configure::read('API_SEARCH').'album'.'%3A'.$artistAlbumName.'%20'.'artist'.'%3A'.$artistName.'&type=album';
           $responseSearchedArtistIdAlbum = $http->get($getSearchedArtistIdAlbum);
           $dataSearchedArtistAlbum = $responseSearchedArtistIdAlbum->getJSON();
 
