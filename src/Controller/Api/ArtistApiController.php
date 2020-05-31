@@ -20,13 +20,13 @@ class ArtistApiController extends AppController
 
     /*
     *
-    * Endpoint   Artist/{@artistName}/album/{@albumname}
+    * Endpoint   Artist/{@artistName}/album/{@artistAlbumName}
     * 
     * Parameters 
-    * Name        | Type        | Description
+    * Name              | Type        | Description
     * ------------------------------------------------------------------------------
-    * artistName  | string      | name of an Artist (e.g ABBA, LANY, JOURNEY)
-    * albumname   | string      | name of an Artist Album (e.g  Arrival, Frontiers )
+    * artistName        | string      | name of an Artist (e.g ABBA, LANY, JOURNEY)
+    * artistAlbumName   | string      | name of an Artist Album (e.g  Arrival, Frontiers )
     *
     * Status Code 
     * Name        | Type        | Description
